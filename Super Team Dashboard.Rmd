@@ -1,0 +1,407 @@
+---
+title: "ICC T20 World Cup 2022 Team of the Tournament"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    theme:
+      version: 4
+      bg: "#FDF7F7"
+      fg: "#101010" 
+      primary: "#320073"
+      navbar-bg: "#ff00a5"
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(dplyr)
+library(tidyverse)
+library(htmltools)
+library(kableExtra)
+library(knitr)
+library(scatterplot3d)
+```
+
+Team Summary
+==============================
+
+## ICC T20 World Cup 2022 Team of the Tournament
+
+```{r}
+#getwd()
+# Read player data
+player_data <- read.csv("t20_csv_files/final_player_data.csv")
+playing11 <- read.csv("t20_csv_files/playing11.csv")
+
+# Function to generate HTML code for displaying images
+image_html <- function(url) {
+  img_tag <- sprintf('<img src="%s" style="width:100px;height:100px;">', url)
+  htmltools::HTML(img_tag)
+}
+
+# Create a new column with image HTML code
+playing11$image <- lapply(playing11$image, image_html)
+
+playing11 <- playing11[,c("image", "name", "role", "team", "description")]
+
+# Display table with images
+table_with_images <- knitr::kable(playing11, "html", escape = FALSE) %>%
+  kableExtra::kable_styling(full_width = FALSE)
+
+# Create HTML widget to render the table
+table_widget <- htmltools::HTML(table_with_images)
+
+# Output the table widget
+table_widget
+```
+
+Selection Criteria:
+
+Openers (2): 
+
+* Batting average > 30
+
+* Batting strike rate > 140
+
+* Innings batted > 3
+
+* Boundary % > 50
+
+* Batting position < 3
+ 
+
+Anchors (3):
+
+* Batting average > 40
+
+* Batting strike rate > 125
+
+* Innings Batted > 3
+
+* Average balls faced > 20
+
+* Batting position > 2
+
+
+All rounders (2):
+
+* Batting average > 15
+
+* Batting strike rate > 140
+
+* Innings batted > 2
+
+* Batting position > 4
+
+* Innings bowled > 2
+
+* Economy < 7
+
+* Bowling strike rate < 20
+
+
+Fast bowlers (3)*:
+
+* Innings bowled > 4
+
+* Economy < 7
+
+* Bowling strike rate < 16
+
+* Bowling style = "fast"
+
+* Bowling average < 20
+
+* Dot ball % > 40
+
+
+Legspinner (1):
+
+ * Innings bowled > 4
+
+ * Economy < 7
+
+ * Bowling strike rate < 16
+
+ * Bowling style = "legbreak"
+
+ * Bowling average < 20
+
+  
+Note: Sam Curran was initially picked as a fast bowler, but since he is an all-rounder, he is classified as an all-rounder in the super team.
+
+Openers {data-orientation=columns}
+==============================
+
+Column
+---------------------------------
+
+### List of potential openers (scroll)
+
+```{r}
+openers <- player_data %>% 
+  filter(battingAvg > 30, battingSR > 140, innsBatted > 3, boundaryPer > 50, battingPos < 3) %>% 
+  arrange(desc(battingAvg)) %>% 
+  select(image, name, team, totalRuns, battingAvg, battingSR, innsBatted, boundaryPer, battingPos, avgBallsFaced)
+
+# Create a new column with image HTML code
+openers$image <- lapply(openers$image, image_html)
+table_with_images <- knitr::kable(openers, "html", escape = FALSE) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::row_spec(1:2, background = "lightgreen")
+table_widget <- htmltools::HTML(table_with_images)
+table_widget
+```
+
+Column
+---------------------------------
+
+### 3d scatterplot comparing batting average, batting strike rate, and boundary percentage
+```{r}
+
+s3d <- scatterplot3d(openers$battingAvg, openers$battingSR, openers$boundaryPer,
+                 color="blue", pch=19,        # filled blue circles
+                 main="Batting Avg vs Batting SR vs Boundary %",
+                 xlab = "Batting Average", ylab = "Batting Strike Rate", zlab = "Boundary Percentage")
+    s3d.coords <- s3d$xyz.convert(openers$battingAvg, openers$battingSR, openers$boundaryPer) # convert 3D coords to 2D projection
+    text(s3d.coords$x, s3d.coords$y,             # x and y coordinates
+         labels=openers$name,               # text to plot
+         cex=1, pos=4)  
+```
+
+### Selection Criteria:
+
+Sorted by batting average
+
+* Batting average > 30
+
+* Batting strike rate > 140
+
+* Innings batted > 3
+
+* Boundary % > 50
+
+* Batting position < 3
+
+Anchors{data-orientation=columns}
+==============================
+
+Column
+---------------------------------
+
+### List of potential anchors (scroll)
+
+```{r}
+anchors <- player_data %>% 
+  filter(battingAvg > 40, battingSR > 125, innsBatted > 3, avgBallsFaced > 20, battingPos > 2) %>% 
+  arrange(desc(battingAvg)) %>% 
+  select(image, name, team, totalRuns, battingAvg, battingSR, innsBatted, boundaryPer, battingPos, avgBallsFaced)
+# Create a new column with image HTML code
+anchors$image <- lapply(anchors$image, image_html)
+table_with_images <- knitr::kable(anchors, "html", escape = FALSE) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::row_spec(1:3, background = "lightgreen")
+table_widget <- htmltools::HTML(table_with_images)
+table_widget
+```
+
+Column
+---------------------------------
+
+### 3d scatterplot comparing batting average, batting strike rate, and boundary percentage
+```{r}
+
+s3d <- scatterplot3d(anchors$battingAvg, anchors$battingSR, anchors$boundaryPer,
+                 color="blue", pch=19,        # filled blue circles
+                 main="Batting Avg vs Batting SR vs Boundary %",
+                 xlab = "Batting Average", ylab = "Batting Strike Rate", zlab = "Boundary Percentage")
+    s3d.coords <- s3d$xyz.convert(anchors$battingAvg, anchors$battingSR, anchors$boundaryPer) # convert 3D coords to 2D projection
+    text(s3d.coords$x, s3d.coords$y,             # x and y coordinates
+         labels=anchors$name,               # text to plot
+         cex=1, pos=4)  
+```
+
+### Selection Criteria:
+
+Sorted by batting average
+
+* Batting average > 40
+
+* Batting strike rate > 125
+
+* Innings Batted > 3
+
+* Average balls faced > 20
+
+* Batting position > 2
+
+All Rounders {data-orientation=columns}
+==============================
+
+Column
+---------------------------------
+
+### List of potential all rounders (scroll)
+```{r}
+all_rounders <- player_data %>% 
+  filter(battingAvg > 15, battingSR > 140, innsBatted > 2, battingPos > 4, economy < 7, bowlingSR < 20) %>% 
+  arrange(desc(battingSR)) %>% 
+  select(image, name, team, totalRuns, battingAvg, battingSR, innsBatted, boundaryPer, battingPos, bowlingStyle, totalWickets, economy, bowlingAvg, bowlingSR, innsBowled)
+# Create a new column with image HTML code
+all_rounders$image <- lapply(all_rounders$image, image_html)
+table_with_images <- knitr::kable(all_rounders, "html", escape = FALSE) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::row_spec(1:2, background = "lightgreen")
+table_widget <- htmltools::HTML(table_with_images)
+table_widget
+```
+
+Column
+---------------------------------
+
+### 3d scatterplot comparing batting average, batting strike rate, and boundary percentage (open image in a new tab for a better view) 
+```{r}
+
+s3d <- scatterplot3d(all_rounders$battingAvg, all_rounders$battingSR, all_rounders$boundaryPer,
+                 color="blue", pch=19,        # filled blue circles
+                 main="Batting Avg vs Batting SR vs Boundary %",
+                 xlab = "Batting Average", ylab = "Batting Strike Rate", zlab = "Boundary Percentage")
+    s3d.coords <- s3d$xyz.convert(all_rounders$battingAvg, all_rounders$battingSR, all_rounders$boundaryPer) # convert 3D coords to 2D projection
+    text(s3d.coords$x, s3d.coords$y,             # x and y coordinates
+         labels=all_rounders$name,               # text to plot
+         cex=1, pos=4)  
+```
+
+### 3d scatterplot comparing economy, bowling average, and bowling strike rate (open image in a new tab for a better view)
+```{r}
+options(repr.plot.width = 8, repr.plot.height = 6)
+s3d <- scatterplot3d(all_rounders$economy, all_rounders$bowlingAvg, all_rounders$bowlingSR,
+                 color="blue", pch=19,        # filled blue circles
+                 main="Economy vs Bowling Average vs Bowling SR",
+                 xlab = "Economy", ylab = "Bowling Average", zlab = "Bowling Strike Rate")
+    s3d.coords <- s3d$xyz.convert(all_rounders$economy, all_rounders$bowlingAvg, all_rounders$bowlingSR) # convert 3D coords to 2D projection
+    text(s3d.coords$x, s3d.coords$y,             # x and y coordinates
+         labels=all_rounders$name,               # text to plot
+         cex=1, pos=4)  
+```
+
+### Selection Criteria:
+
+Sorted by batting strike rate
+
+* Batting average > 15
+
+* Batting strike rate > 140
+
+* Innings batted > 2
+
+* Batting position > 4
+
+* Innings bowled > 2
+
+* Economy < 7
+
+* Bowling strike rate < 20
+
+Fast Bowlers {data-orientation=columns}
+==============================
+
+Column
+---------------------------------
+### List of potential fast bowlers
+```{r}
+fast_bowlers <- player_data %>% 
+  filter(innsBowled > 4, economy < 7, bowlingSR < 16, grepl("fast", bowlingStyle, fixed = T), bowlingAvg < 20, dotBallPer > 40) %>% 
+  arrange(bowlingAvg) %>% 
+  select(image, name, team, totalWickets, economy, bowlingAvg, bowlingSR, innsBowled, runsConceded, ballsBowled, dotBallPer)
+# Create a new column with image HTML code
+fast_bowlers$image <- lapply(fast_bowlers$image, image_html)
+table_with_images <- knitr::kable(fast_bowlers, "html", escape = FALSE) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::row_spec(1:3, background = "lightgreen")
+table_widget <- htmltools::HTML(table_with_images)
+table_widget
+```
+
+Column
+---------------------------------
+
+### 3d scatterplot comparing economy, bowling average, and bowling strike rate
+```{r}
+options(repr.plot.width = 8, repr.plot.height = 6)
+s3d <- scatterplot3d(fast_bowlers$economy, fast_bowlers$bowlingAvg, fast_bowlers$bowlingSR,
+                 color="blue", pch=19,        # filled blue circles
+                 main="Economy vs Bowling Average vs Bowling SR",
+                 xlab = "Economy", ylab = "Bowling Average", zlab = "Bowling Strike Rate")
+    s3d.coords <- s3d$xyz.convert(fast_bowlers$economy, fast_bowlers$bowlingAvg, fast_bowlers$bowlingSR) # convert 3D coords to 2D projection
+    text(s3d.coords$x, s3d.coords$y,             # x and y coordinates
+         labels=fast_bowlers$name,               # text to plot
+         cex=1, pos=4)  
+```
+
+### Selection Criteria:
+
+Sorted by bowling average
+
+* Innings bowled > 4
+
+* Economy < 7
+
+* Bowling strike rate < 16
+
+* Bowling style = "fast"
+
+* Bowling average < 20
+
+* Dot ball % > 40
+
+Legspinners {data-orientation=columns}
+==============================
+
+Column
+---------------------------------
+### List of potential legspinners
+```{r}
+mystery_spinner <- player_data %>% 
+  filter(innsBowled > 4, economy < 7, bowlingSR < 16, grepl("legbreak", bowlingStyle, fixed = T), bowlingAvg < 20) %>% 
+  arrange(bowlingAvg) %>% 
+  select(image, name, team, totalWickets, economy, bowlingAvg, bowlingSR, innsBowled, runsConceded, ballsBowled, dotBallPer)
+# Create a new column with image HTML code
+mystery_spinner$image <- lapply(mystery_spinner$image, image_html)
+table_with_images <- knitr::kable(mystery_spinner, "html", escape = FALSE) %>%
+  kableExtra::kable_styling(full_width = FALSE) %>% 
+  kableExtra::row_spec(1:1, background = "lightgreen")
+table_widget <- htmltools::HTML(table_with_images)
+table_widget
+```
+
+Column
+---------------------------------
+
+```{r}
+options(repr.plot.width = 8, repr.plot.height = 6)
+s3d <- scatterplot3d(mystery_spinner$economy, mystery_spinner$bowlingAvg, mystery_spinner$bowlingSR,
+                 color="blue", pch=19,        # filled blue circles
+                 main="Economy vs Bowling Average vs Bowling SR",
+                 xlab = "Economy", ylab = "Bowling Average", zlab = "Bowling Strike Rate")
+    s3d.coords <- s3d$xyz.convert(mystery_spinner$economy, mystery_spinner$bowlingAvg, mystery_spinner$bowlingSR) # convert 3D coords to 2D projection
+    text(s3d.coords$x, s3d.coords$y,             # x and y coordinates
+         labels=mystery_spinner$name,               # text to plot
+         cex=1, pos=4)  
+```
+
+
+### Selection Criteria:
+
+Sorted by bowling average
+
+ * Innings bowled > 4
+
+ * Economy < 7
+
+ * Bowling strike rate < 16
+
+ * Bowling style = "legbreak"
+
+ * Bowling average < 20
